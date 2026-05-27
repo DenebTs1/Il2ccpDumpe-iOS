@@ -6,6 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3DADBEEA2FC6395F0073E3F8 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DADBEE92FC6395F0073E3F8 /* UIKit.framework */; };
+		3DADBEEE2FC639670073E3F8 /* MetalFX.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DADBEEB2FC639660073E3F8 /* MetalFX.framework */; platformFilter = ios; };
+		3DADBEEF2FC639670073E3F8 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DADBEEC2FC639660073E3F8 /* Metal.framework */; };
+		3DADBEF02FC639670073E3F8 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DADBEED2FC639660073E3F8 /* MetalKit.framework */; };
+		3DADBEF22FC6396F0073E3F8 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DADBEF12FC6396F0073E3F8 /* GameKit.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		3DADBDE82FC5CC030073E3F8 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -19,25 +27,17 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		3DADBDEA2FC5CC030073E3F8 /* libIl2ccpDumper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libIl2ccpDumper.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		3DADBDEA2FC5CC030073E3F8 /* libIl2ccpDumper.dylib */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libIl2ccpDumper.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		3DADBEE92FC6395F0073E3F8 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk/System/iOSSupport/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
+		3DADBEEB2FC639660073E3F8 /* MetalFX.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalFX.framework; path = System/Library/Frameworks/MetalFX.framework; sourceTree = SDKROOT; };
+		3DADBEEC2FC639660073E3F8 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
+		3DADBEED2FC639660073E3F8 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk/System/iOSSupport/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
+		3DADBEF12FC6396F0073E3F8 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk/System/iOSSupport/System/Library/Frameworks/GameKit.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		3DADBDF12FC5CC030073E3F8 /* Exceptions for "Il2ccpDumper" folder in "Copy Files" phase from "Il2ccpDumper" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 3DADBDE82FC5CC030073E3F8 /* CopyFiles */;
-			membershipExceptions = (
-				Il2ccpDumper.h,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3DADBDEC2FC5CC030073E3F8 /* Il2ccpDumper */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				3DADBDF12FC5CC030073E3F8 /* Exceptions for "Il2ccpDumper" folder in "Copy Files" phase from "Il2ccpDumper" target */,
-			);
 			path = Il2ccpDumper;
 			sourceTree = "<group>";
 		};
@@ -48,6 +48,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3DADBEEE2FC639670073E3F8 /* MetalFX.framework in Frameworks */,
+				3DADBEF02FC639670073E3F8 /* MetalKit.framework in Frameworks */,
+				3DADBEEF2FC639670073E3F8 /* Metal.framework in Frameworks */,
+				3DADBEEA2FC6395F0073E3F8 /* UIKit.framework in Frameworks */,
+				3DADBEF22FC6396F0073E3F8 /* GameKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				3DADBDEC2FC5CC030073E3F8 /* Il2ccpDumper */,
+				3DADBEE82FC6395F0073E3F8 /* Frameworks */,
 				3DADBDEB2FC5CC030073E3F8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,9 +71,21 @@
 		3DADBDEB2FC5CC030073E3F8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3DADBDEA2FC5CC030073E3F8 /* libIl2ccpDumper.a */,
+				3DADBDEA2FC5CC030073E3F8 /* libIl2ccpDumper.dylib */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		3DADBEE82FC6395F0073E3F8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3DADBEF12FC6396F0073E3F8 /* GameKit.framework */,
+				3DADBEEC2FC639660073E3F8 /* Metal.framework */,
+				3DADBEEB2FC639660073E3F8 /* MetalFX.framework */,
+				3DADBEED2FC639660073E3F8 /* MetalKit.framework */,
+				3DADBEE92FC6395F0073E3F8 /* UIKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -92,7 +110,7 @@
 			packageProductDependencies = (
 			);
 			productName = Il2ccpDumper;
-			productReference = 3DADBDEA2FC5CC030073E3F8 /* libIl2ccpDumper.a */;
+			productReference = 3DADBDEA2FC5CC030073E3F8 /* libIl2ccpDumper.dylib */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -262,6 +280,10 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4J4MGSYZFU;
+				EXECUTABLE_EXTENSION = dylib;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				MACH_O_TYPE = mh_dylib;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -274,6 +296,10 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4J4MGSYZFU;
+				EXECUTABLE_EXTENSION = dylib;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				MACH_O_TYPE = mh_dylib;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
