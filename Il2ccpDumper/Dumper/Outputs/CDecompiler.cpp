@@ -101,20 +101,32 @@ namespace Il2Dumper
         size_t m_FailLogged      = 0;
         const size_t k_FailLogCap = 8;
 
-        /* Cross-check: log a side-by-side of metadata image names vs the
-         codeGenModule names the binary parse came up with. When the two
-        don't align, GetMethodPointer fails for every method below */
-        
-        const auto& m_CgmOrder = p_Il2Cpp->CodeGenModuleOrder();
+        /* Cross-check: log each metadata image next to the codeGenModule it
+         was bound to. A mismatched name, or a pointer table smaller than the
+         image's own method count, means the binding is off and the RVAs below
+         will be short (or wrong) for that image */
+
         IL2D_LOG("Decompile: %zu metadata images, %zu codeGenModules",
-                 p_Meta->ImageDefs().size(), m_CgmOrder.size());
-        for (size_t i = 0; i < p_Meta->ImageDefs().size() && i < 8; ++i)
+                 p_Meta->ImageDefs().size(), p_Il2Cpp->CodeGenModuleOrder().size());
+        for (size_t i = 0; i < p_Meta->ImageDefs().size(); ++i)
         {
-            std::string m_MetaName = p_Meta->GetStringFromIndex(p_Meta->ImageDefs()[i].m_NameIndex);
-            const std::string m_BinName = (i < m_CgmOrder.size()) ? m_CgmOrder[i] : "<none>";
-            IL2D_LOG("  image[%zu]: meta='%s' binary='%s' methodPointers=%zu",
-                     i, m_MetaName.c_str(), m_BinName.c_str(),
-                     p_Il2Cpp->CodeGenModuleMethodCount(int(i)));
+            const SImageDefinition& m_Img = p_Meta->ImageDefs()[i];
+            std::string m_MetaName = p_Meta->GetStringFromIndex(m_Img.m_NameIndex);
+
+            size_t m_ImgMethods = 0;
+            int    m_TdEnd      = m_Img.m_TypeStart + int(m_Img.m_TypeCount);
+            for (int t = m_Img.m_TypeStart; t < m_TdEnd; ++t)
+            {
+                if (t < 0 || size_t(t) >= p_Meta->TypeDefs().size()) continue;
+                m_ImgMethods += p_Meta->TypeDefs()[size_t(t)].m_MethodCount;
+            }
+
+            const size_t m_TableSize = p_Il2Cpp->CodeGenModuleMethodCount(int(i));
+            IL2D_LOG("  image[%zu]: meta='%s' -> module='%s' methodPointers=%zu methods=%zu%s",
+                     i, m_MetaName.c_str(),
+                     p_Il2Cpp->CodeGenModuleNameForImage(int(i)).c_str(),
+                     m_TableSize, m_ImgMethods,
+                     (m_TableSize < m_ImgMethods) ? "  <-- TABLE TOO SMALL" : "");
         }
 
         // Image header

@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/ts1/Documents/Games/Il2ccpDumpe-iOS/build/Build/Release-iphoneos/libIl2ccpDumper.dylib'
+relocations:     []
+...

@@ -1,0 +1,6 @@
+Package: com.ts1.il2ccpdumper
+Name: Il2ccpDumper
+Version: 1.0-1
+Architecture: iphoneos-arm64
+Maintainer: ts1
+Description: Il2ccpDumper project library

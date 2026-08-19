@@ -53,16 +53,29 @@ namespace Il2Dumper
             return &m_Types_[it->second];
         }
 
-        /* Address a codeGenModule by its ordinal (metadata image index ==
-         binary codeGenModule index for any unmodified Unity build)
-         Returns the resolved method pointer or 0 on miss */
-        
+        /* Pair every metadata image with the codeGenModule that actually owns
+         its method pointers. CodeRegistration.codeGenModules is NOT emitted in
+         metadata image order, so without this each image reads a foreign
+         table: lookups past that table's end return 0 and lookups inside it
+         return another assembly's function. Must be called after Init() and
+         before any GetMethodPointerByImageIndex() call */
+
+        void BindImages(const std::vector<std::string>& m_ImageNames);
+
+        // Bound codeGenModule ordinal for a metadata image, or -1 if unpaired.
+        int  ModuleIndexForImage(int m_ImageIdx) const;
+
+        /* Resolve a method pointer through the image -> module binding.
+         Returns the scrubbed VA, or 0 when the method has no compiled body
+         (abstract / interface / extern) or the image stayed unpaired */
+
         uint64_t GetMethodPointerByImageIndex(int      m_ImageIdx,
                                               uint32_t m_Token,
                                               int32_t  m_MethodIndex) const;
 
-        // Per-module table size, used by the decompiler's diagnostic log.
+        // Bound-module table size, used by the decompiler's diagnostic log.
         const std::vector<std::string>& CodeGenModuleOrder() const { return m_CodeGenModuleOrder_; }
+        std::string                     CodeGenModuleNameForImage(int m_ImageIdx) const;
         size_t                          CodeGenModuleMethodCount(int m_ImageIdx) const;
 
         /* Resolve a field offset. b_ValueType + !b_Static adjusts for the
@@ -96,6 +109,9 @@ namespace Il2Dumper
         
         std::vector<std::string>           m_CodeGenModuleOrder_;
         std::vector<std::vector<uint64_t>> m_CodeGenModulePointers_;
+
+        // metadata image index -> codeGenModule ordinal; -1 = unpaired.
+        std::vector<int>                   m_ImageToModule_;
     #endif
     };
 

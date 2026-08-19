@@ -211,6 +211,19 @@ namespace Il2Dumper
         }
         IL2D_LOG("Run: PlusSearch ok");
 
+        /* Pair metadata images with their codeGenModules. codeGenModules are
+         not laid out in image order, so every method-pointer lookup has to go
+         through this binding rather than the raw image ordinal */
+        {
+            std::vector<std::string> m_ImageNames;
+            m_ImageNames.reserve(m_Meta.ImageDefs().size());
+            for (const auto& m_Img : m_Meta.ImageDefs())
+            {
+                m_ImageNames.push_back(m_Meta.GetStringFromIndex(m_Img.m_NameIndex));
+            }
+            m_Il2Cpp.BindImages(m_ImageNames);
+        }
+
         // 4. Pick output dir
         std::string m_OutDir = m_Cfg.m_OutputDir.empty() ? DefaultOutputDir() : m_Cfg.m_OutputDir;
         if (!m_OutDir.empty() && m_OutDir.back() != '/') m_OutDir.push_back('/');

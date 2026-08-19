@@ -10,6 +10,8 @@
 #include "../Core/Log.h"
 #include "../Utils/CSectionHelper.h"
 
+#include <cstdint>
+
 namespace Il2Dumper
 {
     /* Pointer arrays in real Il2Cpp targets never reach this size; a
@@ -192,14 +194,124 @@ namespace Il2Dumper
         return true;
     }
 
+#ifdef IL2CPP_VER_GE_24_2
+    static std::string LowerAscii(const std::string& m_In)
+    {
+        std::string m_Out = m_In;
+        for (char& c : m_Out)
+        {
+            if (c >= 'A' && c <= 'Z') c = char(c - 'A' + 'a');
+        }
+        return m_Out;
+    }
+#endif
+
+    void CIl2Cpp::BindImages(const std::vector<std::string>& m_ImageNames)
+    {
+    #ifdef IL2CPP_VER_GE_24_2
+        const size_t m_ImgCount = m_ImageNames.size();
+        const size_t m_ModCount = m_CodeGenModuleOrder_.size();
+
+        m_ImageToModule_.assign(m_ImgCount, -1);
+
+        std::vector<bool>                       m_Claimed(m_ModCount, false);
+        std::unordered_map<std::string, size_t> m_Exact;
+        std::unordered_map<std::string, size_t> m_Folded;
+        m_Exact.reserve(m_ModCount * 2);
+        m_Folded.reserve(m_ModCount * 2);
+        for (size_t i = 0; i < m_ModCount; ++i)
+        {
+            // First writer wins: a duplicate module name means a broken build.
+            m_Exact.emplace(m_CodeGenModuleOrder_[i], i);
+            m_Folded.emplace(LowerAscii(m_CodeGenModuleOrder_[i]), i);
+        }
+
+        // Exact match first, ASCII-case-folded second. SIZE_MAX = no module.
+        auto m_Lookup = [&](const std::string& m_Name) -> size_t
+        {
+            auto it = m_Exact.find(m_Name);
+            if (it != m_Exact.end()) return it->second;
+            auto it2 = m_Folded.find(LowerAscii(m_Name));
+            if (it2 != m_Folded.end()) return it2->second;
+            return SIZE_MAX;
+        };
+
+        size_t m_ByName = 0;
+        for (size_t i = 0; i < m_ImgCount; ++i)
+        {
+            if (m_ImageNames[i].empty()) continue;
+
+            const size_t m_Mod = m_Lookup(m_ImageNames[i]);
+            if (m_Mod == SIZE_MAX || m_Claimed[m_Mod]) continue;
+
+            m_ImageToModule_[i] = int(m_Mod);
+            m_Claimed[m_Mod]    = true;
+            ++m_ByName;
+        }
+
+        /* Obfuscated builds rename modules in the binary but not always in
+         metadata (or the other way round). When exactly as many images as
+         modules are left over, the only consistent completion is to pair the
+         remainders in order -- that is also what the old ordinal-only path
+         did, so nothing regresses for a fully-obfuscated target */
+
+        std::vector<size_t> m_FreeImgs, m_FreeMods;
+        for (size_t i = 0; i < m_ImgCount; ++i) if (m_ImageToModule_[i] < 0)  m_FreeImgs.push_back(i);
+        for (size_t i = 0; i < m_ModCount; ++i) if (!m_Claimed[i])            m_FreeMods.push_back(i);
+
+        if (!m_FreeImgs.empty() && m_FreeImgs.size() == m_FreeMods.size())
+        {
+            for (size_t k = 0; k < m_FreeImgs.size(); ++k)
+            {
+                m_ImageToModule_[m_FreeImgs[k]] = int(m_FreeMods[k]);
+            }
+        }
+
+        IL2D_LOG("BindImages: %zu images, %zu codeGenModules -- %zu by name, %zu by leftover order, %zu unpaired",
+                 m_ImgCount, m_ModCount, m_ByName,
+                 (m_FreeImgs.size() == m_FreeMods.size()) ? m_FreeImgs.size() : size_t(0),
+                 (m_FreeImgs.size() == m_FreeMods.size()) ? size_t(0) : m_FreeImgs.size());
+
+        if (m_FreeImgs.size() != m_FreeMods.size())
+        {
+            IL2D_LOG("BindImages: %zu images left unpaired (%zu modules free) -- "
+                     "their methods will have no RVA", m_FreeImgs.size(), m_FreeMods.size());
+        }
+    #else
+        (void)m_ImageNames;
+    #endif
+    }
+
+    int CIl2Cpp::ModuleIndexForImage(int m_ImageIdx) const
+    {
+    #ifdef IL2CPP_VER_GE_24_2
+        if (m_ImageIdx < 0) return -1;
+
+        // BindImages() never ran -- keep the historical ordinal behaviour.
+        if (m_ImageToModule_.empty())
+        {
+            return (size_t(m_ImageIdx) < m_CodeGenModulePointers_.size()) ? m_ImageIdx : -1;
+        }
+        if (size_t(m_ImageIdx) >= m_ImageToModule_.size()) return -1;
+
+        const int m_Mod = m_ImageToModule_[size_t(m_ImageIdx)];
+        return (m_Mod >= 0 && size_t(m_Mod) < m_CodeGenModulePointers_.size()) ? m_Mod : -1;
+    #else
+        (void)m_ImageIdx;
+        return -1;
+    #endif
+    }
+
     uint64_t CIl2Cpp::GetMethodPointerByImageIndex(int      m_ImageIdx,
                                                    uint32_t m_Token,
                                                    int32_t  m_MethodIndex) const
     {
     #ifdef IL2CPP_VER_GE_24_2
         (void)m_MethodIndex;
-        if (m_ImageIdx < 0 || size_t(m_ImageIdx) >= m_CodeGenModulePointers_.size()) return 0;
-        const auto& m_Ptrs = m_CodeGenModulePointers_[size_t(m_ImageIdx)];
+        const int m_ModIdx = ModuleIndexForImage(m_ImageIdx);
+        if (m_ModIdx < 0) return 0;
+
+        const auto& m_Ptrs = m_CodeGenModulePointers_[size_t(m_ModIdx)];
         uint32_t m_Idx = m_Token & 0x00FFFFFFu;
         if (m_Idx == 0 || m_Idx > uint32_t(m_Ptrs.size())) return 0;
         return m_Ptrs[m_Idx - 1];
@@ -209,11 +321,24 @@ namespace Il2Dumper
     #endif
     }
 
+    std::string CIl2Cpp::CodeGenModuleNameForImage(int m_ImageIdx) const
+    {
+    #ifdef IL2CPP_VER_GE_24_2
+        const int m_ModIdx = ModuleIndexForImage(m_ImageIdx);
+        if (m_ModIdx < 0) return "<unpaired>";
+        return m_CodeGenModuleOrder_[size_t(m_ModIdx)];
+    #else
+        (void)m_ImageIdx;
+        return "<n/a>";
+    #endif
+    }
+
     size_t CIl2Cpp::CodeGenModuleMethodCount(int m_ImageIdx) const
     {
     #ifdef IL2CPP_VER_GE_24_2
-        if (m_ImageIdx < 0 || size_t(m_ImageIdx) >= m_CodeGenModulePointers_.size()) return 0;
-        return m_CodeGenModulePointers_[size_t(m_ImageIdx)].size();
+        const int m_ModIdx = ModuleIndexForImage(m_ImageIdx);
+        if (m_ModIdx < 0) return 0;
+        return m_CodeGenModulePointers_[size_t(m_ModIdx)].size();
     #else
         (void)m_ImageIdx;
         return 0;
